@@ -28,6 +28,24 @@ impl<'a, T>  MySlice<'a, T> {
             .for_each( |x| ms.v.push(x));
         ms
     }
+    fn iter_mut(&'a mut self) -> MySliceIterMut<'_, T> {
+        MySliceIterMut {
+            iter: self.v.iter_mut()
+        }
+    }
+}
+
+struct MySliceIterMut<'a, T>
+    where T: 'a {
+    iter : std::slice::IterMut<'a, &'a mut T>,
+}
+
+impl<'a, T> MySliceIterMut<'a, T>  {
+    fn new(iter: std::slice::IterMut<'a, &'a mut T>) -> MySliceIterMut<'_, T> {
+        MySliceIterMut {
+            iter
+        }
+    }
 }
 
 impl<'a, T> std::ops::Index<usize> for MySlice<'a, T> {
