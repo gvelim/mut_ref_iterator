@@ -9,7 +9,7 @@ fn main() {
         .iter_mut()
         .for_each(|x| { **x *= 2 });
 
-    *ms.v[0] = 10;
+    ms[0] = 10;
 
     println!("Slice: {:?}",slice);
 }
@@ -30,5 +30,15 @@ impl<'a, T>  MySlice<'a, T> {
 }
 
 impl<'a, T> std::ops::Index<usize> for MySlice<'a, T> {
+    type Output = T;
 
+    fn index(&self, index: usize) -> &Self::Output {
+        & *self.v[index]
+    }
+}
+
+impl<'a, T> std::ops::IndexMut<usize> for MySlice<'a, T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut *self.v[index]
+    }
 }
