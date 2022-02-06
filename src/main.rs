@@ -5,11 +5,12 @@ fn main() {
 
     println!("MySlice: {:?}",ms);
 
-    ms.v[2..5]
+    ms[2..5]
         .iter_mut()
         .for_each(|x| { **x *= 2 });
 
-    ms[0] = 10;
+    ms[0] *= 5;
+    ms[1] *= 5;
 
     println!("Slice: {:?}",slice);
 }
@@ -40,5 +41,21 @@ impl<'a, T> std::ops::Index<usize> for MySlice<'a, T> {
 impl<'a, T> std::ops::IndexMut<usize> for MySlice<'a, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut *self.v[index]
+    }
+}
+
+use std::ops::Range;
+
+impl<'a, T> std::ops::Index<Range<usize>> for MySlice<'a, T> {
+    type Output = [&'a mut T];
+
+    fn index(&self, rng: Range<usize>) -> &Self::Output {
+        &self.v[rng]
+    }
+}
+
+impl<'a, T> std::ops::IndexMut<Range<usize>> for MySlice<'a, T> {
+    fn index_mut(&mut self, rng: Range<usize>) -> &mut Self::Output {
+        &mut self.v[rng]
     }
 }
