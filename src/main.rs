@@ -1,55 +1,60 @@
 
 fn main() {
     let slice = &mut [1,2,3,4,5,6,7];
-    {
-        let mut ms = MySlice::new(slice);
-        println!("MySlice: {:?}",ms);
-        ms.iter_mut()
-            .enumerate()
-            .for_each(|(i, x)| { *x *= i+1 });
-    }
-    {
-        let mut ms = MySlice::new(slice);
-        println!("MySlice: {:?}",ms);
-        ms[0] *= 5;
-        ms[1] *= 5;
-    }
+
+    let mut ms = MySlice::new(slice);
+    println!("MySlice: {:?}",ms);
+    ms.iter_mut()
+        .enumerate()
+        .for_each(|(i, x)| { **x *= i+1 });
+
+    println!("MySlice: {:?}",ms);
+    ms[0] *= 5;
+    ms[1] *= 5;
+
     println!("Slice: {:?}",slice);
 }
 
 #[derive(Debug)]
-struct MySlice<'a, T> {
+struct MySlice<'a, T> where T: Ord {
     v : Vec<&'a mut T>,
 }
 
-impl<'a, T: 'a>  MySlice<'a, T> {
+impl<'a, T,>  MySlice<'a, T>
+    where T: Ord {
 
-    fn new(slice: &'a mut [T]) -> MySlice<'a, T> {
+    fn new(slice: &mut [T]) -> MySlice<'_, T> {
         let mut ms = MySlice { v: Vec::new() };
         slice.iter_mut()
             .for_each( |x| ms.v.push(x));
         ms
     }
-
-    fn iter_mut(&'a mut self) -> MySliceIterMut<T> {
+    fn iter_mut(&mut self) -> impl Iterator<Item=&'_ mut &'a mut T> {
         MySliceIterMut::new(self.v.iter_mut() )
     }
 }
 
-struct MySliceIterMut<'a, T>
-{
-    iter : std::slice::IterMut<'a, &'a mut T>,
+struct MySliceIterMut<I>
+    where I: Iterator, I::Item: Ord {
+    iter : I,
 }
 
-impl<'a, T> MySliceIterMut<'a, T>  {
-    fn new(iter: std::slice::IterMut<'a, &'a mut T>) -> MySliceIterMut<'a, T> {
+impl<'a,T,I> MySliceIterMut<I>
+    where T: Ord + 'a,
+          I: Iterator<Item=&'a mut T>,
+          I::Item: Ord {
+
+    fn new(iter: I) -> impl Iterator<Item=&'a mut T> {
         MySliceIterMut {
-            iter
+            iter: iter
         }
     }
 }
 
-impl<'a, T> Iterator for MySliceIterMut<'a, T> {
+impl<'a, I, T> Iterator for MySliceIterMut<I>
+    where T: 'a,
+          I: Iterator<Item=&'a mut T>,
+          I::Item: Ord {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -60,7 +65,8 @@ impl<'a, T> Iterator for MySliceIterMut<'a, T> {
     }
 }
 
-impl<'a, T> std::ops::Index<usize> for MySlice<'a, T> {
+impl<'a, T> std::ops::Index<usize> for MySlice<'a, T>
+    where T: Ord {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -68,24 +74,9 @@ impl<'a, T> std::ops::Index<usize> for MySlice<'a, T> {
     }
 }
 
-impl<'a, T> std::ops::IndexMut<usize> for MySlice<'a, T> {
+impl<'a, T> std::ops::IndexMut<usize> for MySlice<'a, T>
+    where T: Ord {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut *self.v[index]
-    }
-}
-
-use std::ops::Range;
-
-impl<'a, T> std::ops::Index<Range<usize>> for MySlice<'a, T> {
-    type Output = [&'a mut T];
-
-    fn index(&self, rng: Range<usize>) -> &Self::Output {
-        &self.v[rng]
-    }
-}
-
-impl<'a, T> std::ops::IndexMut<Range<usize>> for MySlice<'a, T> {
-    fn index_mut(&mut self, rng: Range<usize>) -> &mut Self::Output {
-        &mut self.v[rng]
     }
 }
