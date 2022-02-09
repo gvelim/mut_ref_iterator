@@ -1,12 +1,13 @@
 
 fn main() {
-    let slice = &mut [1,2,3,4,5,6,7];
+    let slice = &mut [1usize,2,3,4,5,6,7];
 
     let mut ms = MySlice::new(slice);
     println!("MySlice: {:?}",ms);
     ms.iter_mut()
+        .map(|x| *x as &mut usize )
         .enumerate()
-        .for_each(|(i, x)| { **x *= i+1 });
+        .for_each(|(i, x)| { *x *= i+1 });
 
     println!("MySlice: {:?}",ms);
     ms[0] *= 5;
@@ -59,7 +60,7 @@ impl<'a, I, T> Iterator for MySliceIterMut<I>
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.iter.next() {
-            Some(val) => Some(&mut *val),
+            Some(val) => Some(&mut *val ),
             None => None,
         }
     }
