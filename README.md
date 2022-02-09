@@ -2,6 +2,7 @@
 
 ## Need
 * A simple way to operate sequencially over multiple array segments in memory at once
+
 We should be able to
 * perform direct operations like `a[12] = 10` or `a.swap(10,20)`
 * iterate using a single iterator like `a.iter_mut().enumerate().for_each( |i, x| *x *= i )`
