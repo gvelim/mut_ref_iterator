@@ -1,32 +1,49 @@
+use std::fmt::{Debug, Formatter};
 
 fn main() {
-    let slice = &mut [1usize,2,3,4,5,6,7];
+    let s1 = &mut [1usize,2,3,4,5,6,7];
+    let s2 = &mut [8usize,9,10,11,12,13,14];
+    let s3 = &mut [15usize,16,17,18,19,20,21];
 
-    let mut ms = MySlice::new(slice);
-    println!("MySlice: {:?}",ms);
+    println!("Slice 1: {:?}",s1);
+    println!("Slice 2: {:?}",s2);
+    println!("Slice 3: {:?}",s3);
+
+    let mut ms = VirtualSlice::new();
+
+    ms.attach(s1);
+    ms.attach(s2);
+    ms.attach(s3);
+
+    println!("VirtualSlice Created:\n\t {:?}",ms);
+
     ms.iter_mut()
         .enumerate()
-        .for_each(|(i, x)| { *x *= i+1 });
+        .for_each(|(i, x)| *x *= i+1 );
 
-    println!("MySlice: {:?}",ms);
+    println!("VirtualSlice processed:\n\t {:?}",ms);
     ms[0] *= 5;
     ms[1] *= 5;
 
-    println!("Slice: {:?}",slice);
+    println!("Slice 1: {:?}",s1);
+    println!("Slice 2: {:?}",s2);
+    println!("Slice 3: {:?}",s3);
+
+    ms[0] = 10;
 }
 
-#[derive(Debug)]
-struct MySlice<T> where T: Ord {
+struct VirtualSlice<T> where T: Ord {
     v : Vec<*mut T>,
 }
 
-impl<T>  MySlice<T>
+impl<T>  VirtualSlice<T>
     where T: Ord {
 
-    fn new(s: &mut [T]) -> MySlice<T> {
-        let mut ms = MySlice { v: Vec::new() };
-        s.iter_mut().for_each( |x| ms.v.push(x as *mut T));
-        ms
+    fn attach(&mut self, s: &mut [T]) {
+        s.iter_mut().for_each( |x| self.v.push(x as *mut T));
+    }
+    fn new() -> VirtualSlice<T> {
+       VirtualSlice { v: Vec::new() }
     }
     fn iter_mut(&mut self) -> impl Iterator<Item=&'_ mut T> {
         MySliceIterMut::new(self.v.iter_mut() )
@@ -38,7 +55,7 @@ struct MySliceIterMut<I>
     iter_mut: I,
 }
 
-impl<'a, I, T> Iterator for MySliceIterMut<I>
+impl<'a,I,T> Iterator for MySliceIterMut<I>
     where I: Iterator<Item=&'a mut *mut T>,
           T: 'a {
     type Item = &'a mut T;
@@ -56,8 +73,8 @@ impl<'a, I, T> Iterator for MySliceIterMut<I>
 }
 
 impl<'a, T, I> MySliceIterMut<I>
-    where I: Iterator<Item=&'a mut *mut T>,
-          T: 'a {
+    where T: 'a,
+          I: Iterator<Item=&'a mut *mut T> {
 
     fn new(iter_mut: I) -> impl Iterator<Item=&'a mut T> {
         MySliceIterMut {
@@ -66,7 +83,7 @@ impl<'a, T, I> MySliceIterMut<I>
     }
 }
 
-impl<'a, T> std::ops::Index<usize> for MySlice<T>
+impl<T> std::ops::Index<usize> for VirtualSlice<T>
     where T: Ord {
     type Output = T;
 
@@ -77,11 +94,21 @@ impl<'a, T> std::ops::Index<usize> for MySlice<T>
     }
 }
 
-impl<'a, T> std::ops::IndexMut<usize> for MySlice<T>
+impl<T> std::ops::IndexMut<usize> for VirtualSlice<T>
     where T: Ord {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         unsafe {
             &mut *self.v[index]
         }
+    }
+}
+
+impl<T> Debug for VirtualSlice<T>
+    where T: Ord + Debug {
+
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_set()
+            .entries( self.v.iter().map(|x| unsafe { & **x } ) )
+            .finish()
     }
 }
