@@ -5,7 +5,7 @@
 
 We should be able to
 * perform direct operations like `a[12] = 10` or `a.swap(10,20)`
-* iterate using a single iterator like `a.iter_mut().enumerate().for_each( |i, x| *x *= i )`
+* iterate mutably like `a.iter_mut().enumerate().for_each( |i, x| *x *= i )`
 
 
 ## An approach
@@ -23,7 +23,7 @@ We should be able to
   
 //  VirtualSlice holding *mutable references* {(0x7ffcb62468f0, 1), (0x7ffcb62468f8, 2), ..., (0x7ffcb6246990, 19), (0x7ffcb6246998, 20), (0x7ffcb62469a0, 21)}}  
 ```
-* Iterate over the mutable references using `&mut T` rather `&mut &mut T` and without attaching to `ms` lifetime
+* Iterate over the mutable references using `&mut T` rather `&mut &mut T` and without attaching to `ms` lifetime. 
 ```
 ms.iter_mut()
   .enumerate()
