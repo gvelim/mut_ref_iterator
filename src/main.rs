@@ -36,7 +36,8 @@ impl<'a, T: 'a>  MySlice<'a, T> {
     }
 }
 
-struct MySliceIterMut<'a, T> {
+struct MySliceIterMut<'a, T>
+{
     iter : std::slice::IterMut<'a, &'a mut T>,
 }
 
