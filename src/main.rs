@@ -1,21 +1,19 @@
 
 fn main() {
     let slice = &mut [1,2,3,4,5,6,7];
-
     {
         let mut ms = MySlice::new(slice);
         println!("MySlice: {:?}",ms);
         ms.iter_mut()
             .enumerate()
-            .for_each(|(i, x)| { *x *= i });
+            .for_each(|(i, x)| { *x *= i+1 });
     }
-    println!("Slice: {:?}",slice);
     {
         let mut ms = MySlice::new(slice);
+        println!("MySlice: {:?}",ms);
         ms[0] *= 5;
         ms[1] *= 5;
     }
-
     println!("Slice: {:?}",slice);
 }
 
@@ -24,7 +22,7 @@ struct MySlice<'a, T> {
     v : Vec<&'a mut T>,
 }
 
-impl<'a, T>  MySlice<'a, T> {
+impl<'a, T: 'a>  MySlice<'a, T> {
 
     fn new(slice: &'a mut [T]) -> MySlice<'a, T> {
         let mut ms = MySlice { v: Vec::new() };
@@ -32,18 +30,18 @@ impl<'a, T>  MySlice<'a, T> {
             .for_each( |x| ms.v.push(x));
         ms
     }
-    fn iter_mut(&'a mut self) -> MySliceIterMut<'_, T> {
+
+    fn iter_mut(&'a mut self) -> MySliceIterMut<T> {
         MySliceIterMut::new(self.v.iter_mut() )
     }
 }
 
-struct MySliceIterMut<'a, T>
-    where T: 'a {
+struct MySliceIterMut<'a, T> {
     iter : std::slice::IterMut<'a, &'a mut T>,
 }
 
 impl<'a, T> MySliceIterMut<'a, T>  {
-    fn new(iter: std::slice::IterMut<'a, &'a mut T>) -> MySliceIterMut<'_, T> {
+    fn new(iter: std::slice::IterMut<'a, &'a mut T>) -> MySliceIterMut<'a, T> {
         MySliceIterMut {
             iter
         }
