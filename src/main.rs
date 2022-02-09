@@ -56,15 +56,15 @@ struct MySliceIterMut<I>
 }
 
 impl<'a,I,T> Iterator for MySliceIterMut<I>
-    where I: Iterator<Item=&'a mut *mut T>,
-          T: 'a {
-    type Item = &'a mut T;
-
+    where I: Iterator<Item=&'a mut *mut T>,     // This the iter grabbed. Here is the main trick where *mut T eliminates the
+          T: 'a {                               //   need to lifetime binding of the two references
+    type Item = &'a mut T;                      // Define the output from &mut*mut T -> &mut T
+                                                //   reference lifetime binds to the iterator's lifetime
     fn next(&mut self) -> Option<Self::Item> {
         match self.iter_mut.next() {
             Some(val) => {
                 unsafe {
-                    Some(&mut **val )
+                    Some(&mut **val )           // doing the type &mut&mut conversion to &mut here
                 }
             },
             None => None,
