@@ -21,7 +21,7 @@ We should be able to
   ms.attach(s2);
   ms.attach(s3);
   
-//  VirtualSlice holding *mutable references* {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}  
+//  VirtualSlice holding *mutable references* {(0x7ffcb62468f0, 1), (0x7ffcb62468f8, 2), ..., (0x7ffcb6246990, 19), (0x7ffcb6246998, 20), (0x7ffcb62469a0, 21)}}  
 ```
 * Iterate over the mutable references using `&mut T` rather `&mut &mut T` and without attaching to `ms` lifetime
 ```
@@ -29,7 +29,7 @@ ms.iter_mut()
   .enumerate()
   .for_each(|(i, x)| *x *= i+1 );
   
-// VirtualSlice : {1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256, 289, 324, 361, 400, 441}
+// VirtualSlice : {(0x7ffcb62468f0, 1), (0x7ffcb62468f8, 4), ..., (0x7ffcb6246990, 361), (0x7ffcb6246998, 400), (0x7ffcb62469a0, 441)}
 // s1: [5, 20, 9, 16, 25, 36, 49]
 // s2: [64, 81, 100, 121, 144, 169, 196]
 // s3: [225, 256, 289, 324, 361, 400, 441]
