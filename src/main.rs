@@ -56,29 +56,26 @@ struct MySliceIterMut<I>
 }
 
 impl<'a,I,T> Iterator for MySliceIterMut<I>
-    where I: Iterator<Item=&'a mut *mut T>,     // This the iter grabbed. Here is the main trick where *mut T eliminates the
-          T: 'a {                               //   need to lifetime binding of the two references
-    type Item = &'a mut T;                      // Define the output from &mut*mut T -> &mut T
-                                                //   reference lifetime binds to the iterator's lifetime
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.iter_mut.next() {
-            Some(val) => {
-                unsafe {
-                    Some(&mut **val )           // doing the type &mut&mut conversion to &mut here
-                }
-            },
+    where I: Iterator<Item=&'a mut T>,          // This is the iter signature from the impl of MySliceIter<I>
+          T: 'a {                               //   new() -> Iterator<Item=&'a mut T>
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<Self::Item> {  // behind this next there is a .map() iter adaptor,
+        match self.iter_mut.next() {            //   which mean the call is `iter_mut().map( &&x -> &x ).next()`
+            Some(val) => Some(val ),
             None => None,
         }
     }
 }
 
 impl<'a, T, I> MySliceIterMut<I>
-    where T: 'a,
-          I: Iterator<Item=&'a mut *mut T> {
+    where I: Iterator<Item=&'a mut *mut T>,     // We grab input IterMut<> here. The trick here is that *mut T eliminates the
+          T: 'a {                               //   need to lifetime binding hence we break the lifetime chain which is unsafe
 
-    fn new(iter_mut: I) -> impl Iterator<Item=&'a mut T> {
-        MySliceIterMut {
-            iter_mut
+    fn new(iter_mut: I) -> impl Iterator<Item=&'a mut T> {  // Define the output from &mut*mut T -> &mut T
+        MySliceIterMut {                                    //   reference lifetime binds to the iterator's lifetime
+            iter_mut : iter_mut
+                .map(|x| unsafe { &mut **x })    // doing the type &mut *mut conversion to &mut here
         }
     }
 }
