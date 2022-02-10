@@ -5,6 +5,7 @@ fn main() {
     let mut ms = MySlice::new(slice);
     println!("MySlice: {:?}",ms);
     ms.iter_mut()
+        .map(|x| *x as &mut usize )
         .enumerate()
         .for_each(|(i, x)| { *x *= i+1 });
 
@@ -28,8 +29,8 @@ impl<'a, T> MySlice<'a, T> {
             .for_each( |x| ms.v.push(x));
         ms
     }
-    fn iter_mut(&'a mut self) -> impl Iterator<Item=&'a mut T> {
-        IterMut::new(self.v.iter_mut().map(|x| *x as &mut T ) )
+    fn iter_mut(&mut self) -> impl Iterator<Item=&'_ mut &'a mut T> {
+        IterMut::new(self.v.iter_mut() )
     }
 }
 
