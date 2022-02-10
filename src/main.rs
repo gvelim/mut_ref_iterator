@@ -16,20 +16,22 @@ fn main() {
     println!("Slice: {:?}",slice);
 }
 
+type MyType<'m,T> = &'m mut T;
+
 #[derive(Debug)]
 struct MySlice<'a, T> {
-    v : Vec<&'a mut T>,
+    v : Vec<MyType<'a,T>>,
 }
 
 impl<'a, T> MySlice<'a, T> {
 
-    fn new(slice: &mut [T]) -> MySlice<'_, T> {
+    fn new(slice: &mut[T]) -> MySlice<'_, T> {
         let mut ms = MySlice { v: Vec::new() };
         slice.iter_mut()
             .for_each( |x| ms.v.push(x));
         ms
     }
-    fn iter_mut(&mut self) -> impl Iterator<Item=&'_ mut &'a mut T> {
+    fn iter_mut(&mut self) -> impl Iterator<Item=&mut MyType<'a,T>> {
         IterMut::new(self.v.iter_mut() )
     }
 }
@@ -39,17 +41,17 @@ struct IterMut<I: Iterator> {
 }
 
 impl<'a, I, T> IterMut<I>
-    where I: Iterator<Item=&'a mut T>, T: 'a {
+    where I: Iterator<Item=MyType<'a,T>>, T: 'a {
 
-    fn new(iter: I) -> impl Iterator<Item=&'a mut T> {
+    fn new(iter: I) -> impl Iterator<Item=MyType<'a,T>> {
         IterMut {
-            iter: iter
+            iter
         }
     }
 }
 
 impl<'a, I, T> Iterator for IterMut<I>
-    where I: Iterator<Item=&'a mut T>, T: 'a {
+    where I: Iterator<Item=MyType<'a,T>>, T: 'a {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -67,7 +69,6 @@ impl<'a, T> std::ops::Index<usize> for MySlice<'a, T> {
         & *self.v[index]
     }
 }
-
 impl<'a, T> std::ops::IndexMut<usize> for MySlice<'a, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut *self.v[index]
